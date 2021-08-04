@@ -41,6 +41,7 @@ This function should only modify configuration layer settings."
      ;; auto-completion
      ;; better-defaults
      windows-scripts
+     html
      javascript
      sql
      markdown
@@ -558,7 +559,217 @@ dump.")
 This function is called at the very end of Spacemacs startup, after layer
 configuration.
 Put your configuration code here, except for variables that should be set
-before packages are loaded.")
+before packages are loaded."
+  ;; ---------------------------------------------
+  ;; -- common ---------------------------------->
+
+  ;; 折り返し
+  (global-visual-line-mode)
+
+  ;; store link
+  (global-set-key (kbd "C-c l") 'org-store-link)
+  ;; absolute -> relative
+  (setq org-link-file-path-type 'relative)
+
+  ;; agenda
+  (global-set-key (kbd "C-c a") 'org-agenda)
+
+  ;; export eval confirm
+  (setq org-confirm-babel-evaluate nil)
+
+  ;; begin_src
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '( (python . t)
+      (org . t)
+      (shell . t)
+      (plantuml . t)
+      (emacs-lisp . t)
+      ))
+
+  ;; pomodoro
+  (use-package org-pomodoro
+    :ensure t
+    :commands (org-pomodoro)
+    :config
+    (setq
+     org-pomodoro-length 1
+     org-pomodoro-short-break-length 1
+     ))
+
+  ;; include
+  (add-hook 'before-save-hook #'endless/update-includes)
+
+  (defun endless/update-includes (&rest ignore)
+    "Update the line numbers of #+INCLUDE:s in current buffer.
+Only looks at INCLUDEs that have either :range-begin or :range-end.
+This function does nothing if not in org-mode, so you can safely
+add it to `before-save-hook'."
+    (interactive)
+    (when (derived-mode-p 'org-mode)
+      (save-excursion
+        (goto-char (point-min))
+        (while (search-forward-regexp
+                "^\\s-*#\\+INCLUDE: *\"\\([^\"]+\\)\".*:range-\\(begin\\|end\\)"
+                nil 'noerror)
+          (let* ((file (expand-file-name (match-string-no-properties 1)))
+                 lines begin end)
+            (forward-line 0)
+            (when (looking-at "^.*:range-begin *\"\\([^\"]+\\)\"")
+              (setq begin (match-string-no-properties 1)))
+            (when (looking-at "^.*:range-end *\"\\([^\"]+\\)\"")
+              (setq end (match-string-no-properties 1)))
+            (setq lines (endless/decide-line-range file begin end))
+            (when lines
+              (if (looking-at ".*:lines *\"\\([-0-9]+\\)\"")
+                  (replace-match lines :fixedcase :literal nil 1)
+                (goto-char (line-end-position))
+                (insert " :lines \"" lines "\""))))))))
+
+  (defun endless/decide-line-range (file begin end)
+    "Visit FILE and decide which lines to include.
+BEGIN and END are regexps which define the line range to use."
+    (let (l r)
+      (save-match-data
+        (with-temp-buffer
+          (insert-file file)
+          (goto-char (point-min))
+          (if (null begin)
+              (setq l "")
+            (search-forward-regexp begin)
+            (setq l (line-number-at-pos (match-beginning 0))))
+          (if (null end)
+              (setq r "")
+            (search-forward-regexp end)
+            (setq r (1+ (line-number-at-pos (match-end 0)))))
+          (format "%s-%s" l r)))))
+
+
+  ;; <-- common ----------------------------------
+  ;; ---------------------------------------------
+
+  ;;font
+  (cond
+   ((eq system-type 'windows-nt)
+    ;; ---------------------------------------------
+    ;; -- windows --------------------------------->
+
+    ;; <-- windows ---------------------------------
+    ;; ---------------------------------------------
+    (set-face-font 'default "Ricty Diminished-15")
+    )
+   ((eq system-type 'darwin)
+    ;; ---------------------------------------------
+    ;; -- mac ------------------------------------->
+
+    (setq plantuml-default-exec-mode 'jar)
+    (setq org-plantuml-jar-path (concat ROOT "download/plantuml.jar"))
+    (setq plantuml-jar-path (concat ROOT "download/plantuml.jar"))
+
+    ;;(require 'ucs-normalize)
+    ;;(set-file-name-coding-system 'utf-8-hfs)
+    ;;(setq locale-coding-system 'utf-8-hfs)
+    (set-face-font 'default "Ricty Diminished-14")
+
+    ;; root_path
+    (setq ROOT "/Users/hal/Dropbox/Org/")
+
+    ;; screenshot
+    (defun my-org-screenshot ()
+      "Save a clipboard's screenshot into a time stamped unique-named file
+   in a specified directory and insert a link to this file."
+      (interactive)
+      (setq filename
+            (concat
+             (make-temp-name
+              (concat "./images/"
+                      (file-name-sans-extension (buffer-name))
+                      (format-time-string "_%Y%m%d_%H%M%S_")) ) ".jpg"))
+      (call-process "pngpaste" nil nil nil filename)
+      (insert (concat "[[" filename "]]"))
+      )
+    ;;(org-display-inline-images))
+
+    (global-set-key (kbd "C-c s") 'my-org-screenshot)
+
+    ;; inline
+    (org-limit-image-size-activate)
+    (defcustom org-limit-image-size '(0.99 . 0.5) "Maximum image size") ;; integer or float or (width-int-or-float . height-int-or-float)
+
+    (defun org-limit-image-size--get-limit-size (width-p)
+      (let ((limit-size (if (numberp org-limit-image-size)
+                            org-limit-image-size
+                          (if width-p (car org-limit-image-size)
+                            (cdr org-limit-image-size)))))
+        (if (floatp limit-size)
+            (ceiling (* limit-size (if width-p (frame-text-width) (frame-text-height))))
+          limit-size)))
+
+    (defvar org-limit-image-size--in-org-display-inline-images nil)
+
+    (defun org-limit-image-size--create-image
+        (old-func file-or-data &optional type data-p &rest props)
+
+      (if (and org-limit-image-size--in-org-display-inline-images
+               org-limit-image-size
+               (null type)
+               ;;(image-type-available-p 'imagemagick) ;;Emacs27 support scaling by default?
+               (null (plist-get props :width)))
+          ;; limit to maximum size
+          (apply
+           old-func
+           file-or-data
+           (if (image-type-available-p 'imagemagick) 'imagemagick)
+           data-p
+           (plist-put
+            (plist-put
+             (org-plist-delete props :width) ;;remove (:width nil)
+             :max-width (org-limit-image-size--get-limit-size t))
+            :max-height (org-limit-image-size--get-limit-size nil)))
+
+        ;; default
+        (apply old-func file-or-data type data-p props)))
+
+    (defun org-limit-image-size--org-display-inline-images (old-func &rest args)
+      (let ((org-limit-image-size--in-org-display-inline-images t))
+        (apply old-func args)))
+
+    (defun org-limit-image-size-activate ()
+      (interactive)
+      (advice-add #'create-image :around #'org-limit-image-size--create-image)
+      (advice-add #'org-display-inline-images :around #'org-limit-image-size--org-display-inline-images))
+
+    (defun org-limit-image-size-deactivate ()
+      (interactive)
+      (advice-remove #'create-image #'org-limit-image-size--create-image)
+      (advice-remove #'org-display-inline-images #'org-limit-image-size--org-display-inline-images))
+
+
+    ;; <-- mac -------------------------------------
+    ;; ---------------------------------------------
+    )
+   ((eq system-type 'gnu/linux)
+    ;; ---------------------------------------------
+    ;; -- linux ----------------------------------->
+
+
+    (set-face-font 'default "Ricty Diminished-15")
+    (set-fontset-font
+     nil 'japanese-jisx0208
+     (font-spec :family "Ricty Diminished"))
+
+
+
+    ;; <-- linux -----------------------------------
+    ;; ---------------------------------------------
+    )
+   )
+
+
+
+
+
+  )
 
 
 ;; Do not write anything past this comment. This is where Emacs will
@@ -575,7 +786,7 @@ This function is called at the very end of Spacemacs initialization."
  ;; If there is more than one, they won't work right.
  '(evil-want-Y-yank-to-eol nil)
  '(package-selected-packages
-   '(yaml-mode web-beautify sql-indent prettier-js powershell pangu-spacing orgit-forge orgit org-rich-yank org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download org-contrib org org-cliplink npm-mode nodejs-repl nginx-mode mmm-mode math-symbol-lists markdown-toc livid-mode skewer-mode simple-httpd json-navigator hierarchy js2-refactor yasnippet multiple-cursors js2-mode js-doc japanese-holidays htmlize helm-org-rifle gnuplot gh-md evil-tutor-ja evil-org dockerfile-mode docker tablist json-mode docker-tramp json-snatcher json-reformat ddskk cdb ccc bmx-mode company avy-migemo migemo auctex-latexmk auctex yapfify sphinx-doc pytest pyenv-mode py-isort poetry pippel pipenv pyvenv pip-requirements nose live-py-mode importmagic epc ctable concurrent deferred helm-pydoc cython-mode blacken anaconda-mode pythonic treemacs-magit smeargle magit-svn magit-gitflow magit-popup magit magit-section helm-gitignore helm-git-grep gitignore-templates gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-commit with-editor transient ws-butler writeroom-mode winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package undo-tree treemacs-projectile treemacs-evil toc-org symon symbol-overlay string-inflection spaceline-all-the-icons restart-emacs request rainbow-delimiters popwin persp-mode pcre2el password-generator paradox overseer org-plus-contrib org-bullets open-junk-file nameless move-text macrostep lorem-ipsum link-hint indent-guide hybrid-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-xref helm-themes helm-swoop helm-purpose helm-projectile helm-mode-manager helm-make helm-ls-git helm-flx helm-descbinds helm-ag google-translate golden-ratio font-lock+ flycheck-package flx-ido fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens evil-args evil-anzu eval-sexp-fu elisp-slime-nav editorconfig dumb-jump dotenv-mode doom-modeline diminish devdocs define-word column-enforce-mode clean-aindent-mode centered-cursor-mode auto-highlight-symbol auto-compile aggressive-indent ace-link ace-jump-helm-line)))
+   '(web-mode tagedit slim-mode scss-mode sass-mode pug-mode impatient-mode helm-css-scss haml-mode emmet-mode counsel-css counsel swiper ivy company-web web-completion-data add-node-modules-path tern yaml-mode web-beautify sql-indent prettier-js powershell pangu-spacing orgit-forge orgit org-rich-yank org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download org-contrib org org-cliplink npm-mode nodejs-repl nginx-mode mmm-mode math-symbol-lists markdown-toc livid-mode skewer-mode simple-httpd json-navigator hierarchy js2-refactor yasnippet multiple-cursors js2-mode js-doc japanese-holidays htmlize helm-org-rifle gnuplot gh-md evil-tutor-ja evil-org dockerfile-mode docker tablist json-mode docker-tramp json-snatcher json-reformat ddskk cdb ccc bmx-mode company avy-migemo migemo auctex-latexmk auctex yapfify sphinx-doc pytest pyenv-mode py-isort poetry pippel pipenv pyvenv pip-requirements nose live-py-mode importmagic epc ctable concurrent deferred helm-pydoc cython-mode blacken anaconda-mode pythonic treemacs-magit smeargle magit-svn magit-gitflow magit-popup magit magit-section helm-gitignore helm-git-grep gitignore-templates gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-commit with-editor transient ws-butler writeroom-mode winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package undo-tree treemacs-projectile treemacs-evil toc-org symon symbol-overlay string-inflection spaceline-all-the-icons restart-emacs request rainbow-delimiters popwin persp-mode pcre2el password-generator paradox overseer org-plus-contrib org-bullets open-junk-file nameless move-text macrostep lorem-ipsum link-hint indent-guide hybrid-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-xref helm-themes helm-swoop helm-purpose helm-projectile helm-mode-manager helm-make helm-ls-git helm-flx helm-descbinds helm-ag google-translate golden-ratio font-lock+ flycheck-package flx-ido fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens evil-args evil-anzu eval-sexp-fu elisp-slime-nav editorconfig dumb-jump dotenv-mode doom-modeline diminish devdocs define-word column-enforce-mode clean-aindent-mode centered-cursor-mode auto-highlight-symbol auto-compile aggressive-indent ace-link ace-jump-helm-line)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
