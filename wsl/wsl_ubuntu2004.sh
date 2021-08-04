@@ -70,7 +70,7 @@ git config core.sparsecheckout true
 git remote add origin https://github.com/ymdhal/settings.git
 echo spacemacs > .git/info/sparse-checkout
 git pull origin develop
-ln -s $git_dir/spacemacs/init.el $usr_home/.spacemacs.d/init.el
+ln -s $git_dir/spacemacs/spacemacs/init.el $usr_home/.spacemacs.d/init.el
 
 #-----------------------------------------------------------------------------------------------------
 echo "### FONT ###"
@@ -99,17 +99,19 @@ sudo chmod +x /usr/bin/sensible-browser
 #-----------------------------------------------------------------------------------------------------
 echo "### CAPTURE ###"
 
-git clone https://github.com/ymdhal/pyscript.git -b clip2file_release1.0.0 $clip2file_dir/pyscript
+git clone https://github.com/ymdhal/pyscript.git -b clip2file_release1.0.0 $git_dir/pyscript
+#git clone https://github.com/ymdhal/pyscript.git -b clip2file_release1.0.0 $clip2file_dir/pyscript
 
 echo "#!/bin/sh"                                > $tmp_dir/clip2png.sh
 echo -n "$python_path "                        >> $tmp_dir/clip2png.sh
-echo    "$clip2file_dir/pyscript/clip2file.py" >> $tmp_dir/clip2png.sh
+echo    "$clip2file_dir/clip2file.py" >> $tmp_dir/clip2png.sh
 
 echo -e \
 "#!/bin/sh
 exec /mnt/c/Windows/System32/SnippingTool.exe '$@'
 " > $tmp_dir/snippingtool.sh
-     
+
+sudo cp $git_dir/pyscript/clip2file.py $clip2file_dir/
 sudo cp $tmp_dir/clip2png.sh /usr/bin/clip2png
 sudo cp $tmp_dir/snippingtool.sh /usr/bin/snippingtool
 sudo chmod +x /usr/bin/clip2png
