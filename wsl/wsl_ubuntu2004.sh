@@ -4,7 +4,7 @@
 ### USR ###
 git_name="vymd"
 git_mail="ymd.urchino@gmail.com"
-clip2file_dir="/mnt/c/Users/yuzuh/Dropbox/Org/settings"
+clip2file_dir="C:/Users/yuzuh/Dropbox/Org/settings"
 chrome_path="/mnt/c/Program\ Files/Google/Chrome/Application/chrome.exe"
 python_path="/mnt/c/Users/yuzuh/AppData/Local/Programs/Python/Python39/python.exe"
 
@@ -31,7 +31,7 @@ sudo apt-get install -y git
 echo "### LANG ###"
 sudo apt-get install -y language-pack-ja language-pack-gnome-ja
 sudo update-locale LANG=ja_JP.UTF-8
-     
+
 #-----------------------------------------------------------------------------------------------------
 echo "### VIM ###"
 sudo apt-get install -y vim-gtk
@@ -86,7 +86,7 @@ echo -e \
 appendWindowsPath = false
 " > $tmp_dir/wsl.conf
 sudo cp $tmp_dir/wsl.conf /etc/wsl.conf
- 
+
 #-----------------------------------------------------------------------------------------------------
 echo "### BROWSER ###"
 echo "#!/bin/sh"         > $tmp_dir/sensible-browser.sh
@@ -95,28 +95,27 @@ echo '${@/\/mnt/\c/C:}' >> $tmp_dir/sensible-browser.sh
 
 sudo cp $tmp_dir/sensible-browser.sh /usr/bin/sensible-browser
 sudo chmod +x /usr/bin/sensible-browser
- 
+
 #-----------------------------------------------------------------------------------------------------
 echo "### CAPTURE ###"
 
-git clone https://github.com/ymdhal/pyscript.git -b clip2file_release1.0.0 $git_dir/pyscript
+git clone https://github.com/ymdhal/pyscript.git -b clip2file_release1.0.1 $git_dir/pyscript
 #git clone https://github.com/ymdhal/pyscript.git -b clip2file_release1.0.0 $clip2file_dir/pyscript
 
 echo "#!/bin/sh"                                > $tmp_dir/clip2png.sh
 echo -n "$python_path "                        >> $tmp_dir/clip2png.sh
 echo    "$clip2file_dir/clip2file.py" >> $tmp_dir/clip2png.sh
 
-echo -e \
-"#!/bin/sh
-exec /mnt/c/Windows/System32/SnippingTool.exe '$@'
-" > $tmp_dir/snippingtool.sh
+echo "#!/bin/sh"                                          > $tmp_dir/snippingtool.sh
+echo -n "exec /mnt/c/Windows/System32/SnippingTool.exe " >> $tmp_dir/snippingtool.sh
+echo '$@'                                                >> $tmp_dir/snippingtool.sh
 
 sudo cp $git_dir/pyscript/clip2file.py $clip2file_dir/
 sudo cp $tmp_dir/clip2png.sh /usr/bin/clip2png
 sudo cp $tmp_dir/snippingtool.sh /usr/bin/snippingtool
 sudo chmod +x /usr/bin/clip2png
 sudo chmod +x /usr/bin/snippingtool
-     
+
 #-----------------------------------------------------------------------------------------------------
 echo "### PLANTUML ###"
 sudo apt-get install -y openjdk-8-jre-headless
@@ -140,11 +139,11 @@ echo "source /usr/local/bin/virtualenvwrapper.sh"       >> $usr_home/.profile
 #sudo apt-get purge -y nodejs npm
 #sudo npm install -g vmd --unsafe-perm-true --allow-root
 #sudo apt-get install -y libxss1
-     
+
 #-----------------------------------------------------------------------------------------------------
 echo "### SOUND ###"
 echo "export PULSE_SERVER=tcp:$(grep nameserver /etc/resolv.conf | awk '{print $2}')" >> $usr_home/.profile
-     
+
 #-----------------------------------------------------------------------------------------------------
 echo "### SOURCE ###"
 source $usr_home/.profile
