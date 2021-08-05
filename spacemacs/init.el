@@ -82,7 +82,14 @@ This function should only modify configuration layer settings."
    ;; `dotspacemacs/user-config'. To use a local version of a package, use the
    ;; `:location' property: '(your-package :location "~/path/to/your-package/")
    ;; Also include the dependencies as they will not be resolved automatically.
-   dotspacemacs-additional-packages '()
+   dotspacemacs-additional-packages
+   '(
+     migemo
+     avy-migemo
+     mozc
+     mozc-im
+     mozc-popup
+     )
 
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -654,10 +661,10 @@ BEGIN and END are regexps which define the line range to use."
     ;; ---------------------------------------------
     ;; -- windows --------------------------------->
 
-    ;; <-- windows ---------------------------------
-    ;; ---------------------------------------------
-    (set-face-font 'default "Ricty Diminished-15")
+    (set-face-font 'default "Ricty Diminished-14")
     )
+   ;; <-- windows ---------------------------------
+   ;; ---------------------------------------------
    ((eq system-type 'darwin)
     ;; ---------------------------------------------
     ;; -- mac ------------------------------------->
@@ -751,12 +758,19 @@ BEGIN and END are regexps which define the line range to use."
    ((eq system-type 'gnu/linux)
     ;; ---------------------------------------------
     ;; -- linux ----------------------------------->
+    ;;mozc
+    (when (require 'mozc nil t)
+      (setq default-input-method "japanese-mozc")
+      (global-set-key [zenkaku-hankaku] 'toggle-input-method) ;; 全角半角で切り替えられる
+      (defvar mozc-candidate-style) ;; avoid compile error
+      (if (require 'mozc-popup nil t)
+          (setq mozc-candidate-style 'popup)
+        (setq mozc-candidate-style 'echo-area)))
 
-
-    (set-face-font 'default "Ricty Diminished-15")
-    (set-fontset-font
-     nil 'japanese-jisx0208
-     (font-spec :family "Ricty Diminished"))
+    (set-face-font 'default "Ricty Diminished-12")
+    ;;(set-fontset-font
+    ;; nil 'japanese-jisx0208
+    ;; (font-spec :family "Ricty Diminished"))
 
 
 
@@ -786,7 +800,7 @@ This function is called at the very end of Spacemacs initialization."
  ;; If there is more than one, they won't work right.
  '(evil-want-Y-yank-to-eol nil)
  '(package-selected-packages
-   '(web-mode tagedit slim-mode scss-mode sass-mode pug-mode impatient-mode helm-css-scss haml-mode emmet-mode counsel-css counsel swiper ivy company-web web-completion-data add-node-modules-path tern yaml-mode web-beautify sql-indent prettier-js powershell pangu-spacing orgit-forge orgit org-rich-yank org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download org-contrib org org-cliplink npm-mode nodejs-repl nginx-mode mmm-mode math-symbol-lists markdown-toc livid-mode skewer-mode simple-httpd json-navigator hierarchy js2-refactor yasnippet multiple-cursors js2-mode js-doc japanese-holidays htmlize helm-org-rifle gnuplot gh-md evil-tutor-ja evil-org dockerfile-mode docker tablist json-mode docker-tramp json-snatcher json-reformat ddskk cdb ccc bmx-mode company avy-migemo migemo auctex-latexmk auctex yapfify sphinx-doc pytest pyenv-mode py-isort poetry pippel pipenv pyvenv pip-requirements nose live-py-mode importmagic epc ctable concurrent deferred helm-pydoc cython-mode blacken anaconda-mode pythonic treemacs-magit smeargle magit-svn magit-gitflow magit-popup magit magit-section helm-gitignore helm-git-grep gitignore-templates gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-commit with-editor transient ws-butler writeroom-mode winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package undo-tree treemacs-projectile treemacs-evil toc-org symon symbol-overlay string-inflection spaceline-all-the-icons restart-emacs request rainbow-delimiters popwin persp-mode pcre2el password-generator paradox overseer org-plus-contrib org-bullets open-junk-file nameless move-text macrostep lorem-ipsum link-hint indent-guide hybrid-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-xref helm-themes helm-swoop helm-purpose helm-projectile helm-mode-manager helm-make helm-ls-git helm-flx helm-descbinds helm-ag google-translate golden-ratio font-lock+ flycheck-package flx-ido fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens evil-args evil-anzu eval-sexp-fu elisp-slime-nav editorconfig dumb-jump dotenv-mode doom-modeline diminish devdocs define-word column-enforce-mode clean-aindent-mode centered-cursor-mode auto-highlight-symbol auto-compile aggressive-indent ace-link ace-jump-helm-line)))
+   '(mozc-popup mozc-im mozc web-mode tagedit slim-mode scss-mode sass-mode pug-mode impatient-mode helm-css-scss haml-mode emmet-mode counsel-css counsel swiper ivy company-web web-completion-data add-node-modules-path tern yaml-mode web-beautify sql-indent prettier-js powershell pangu-spacing orgit-forge orgit org-rich-yank org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download org-contrib org org-cliplink npm-mode nodejs-repl nginx-mode mmm-mode math-symbol-lists markdown-toc livid-mode skewer-mode simple-httpd json-navigator hierarchy js2-refactor yasnippet multiple-cursors js2-mode js-doc japanese-holidays htmlize helm-org-rifle gnuplot gh-md evil-tutor-ja evil-org dockerfile-mode docker tablist json-mode docker-tramp json-snatcher json-reformat ddskk cdb ccc bmx-mode company avy-migemo migemo auctex-latexmk auctex yapfify sphinx-doc pytest pyenv-mode py-isort poetry pippel pipenv pyvenv pip-requirements nose live-py-mode importmagic epc ctable concurrent deferred helm-pydoc cython-mode blacken anaconda-mode pythonic treemacs-magit smeargle magit-svn magit-gitflow magit-popup magit magit-section helm-gitignore helm-git-grep gitignore-templates gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-commit with-editor transient ws-butler writeroom-mode winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package undo-tree treemacs-projectile treemacs-evil toc-org symon symbol-overlay string-inflection spaceline-all-the-icons restart-emacs request rainbow-delimiters popwin persp-mode pcre2el password-generator paradox overseer org-plus-contrib org-bullets open-junk-file nameless move-text macrostep lorem-ipsum link-hint indent-guide hybrid-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-xref helm-themes helm-swoop helm-purpose helm-projectile helm-mode-manager helm-make helm-ls-git helm-flx helm-descbinds helm-ag google-translate golden-ratio font-lock+ flycheck-package flx-ido fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens evil-args evil-anzu eval-sexp-fu elisp-slime-nav editorconfig dumb-jump dotenv-mode doom-modeline diminish devdocs define-word column-enforce-mode clean-aindent-mode centered-cursor-mode auto-highlight-symbol auto-compile aggressive-indent ace-link ace-jump-helm-line)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
