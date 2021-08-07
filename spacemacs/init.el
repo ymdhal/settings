@@ -768,9 +768,30 @@ BEGIN and END are regexps which define the line range to use."
         (setq mozc-candidate-style 'echo-area)))
 
     (set-face-font 'default "Ricty Diminished-12")
-    ;;(set-fontset-font
-    ;; nil 'japanese-jisx0208
-    ;; (font-spec :family "Ricty Diminished"))
+    (set-fontset-font
+     nil 'japanese-jisx0208
+     (font-spec :family "Ricty Diminished"))
+
+    ;; screenshot
+    (defun my-org-screenshot ()
+      "Save a clipboard's screenshot into a time stamped unique-named file
+   in a specified directory and insert a link to this file."
+      (interactive)
+      (setq filename
+            (concat
+             (make-temp-name
+              (concat "./images/"
+                      (file-name-sans-extension (buffer-name))
+                      (format-time-string "_%Y%m%d_%H%M%S_")) ) ".png"))
+      (shell-command "mkdir -p ./images")
+      (shell-command "snippingtool /clip")
+      (shell-command (concat "clip2png -f " filename))
+      (insert (concat "[[" filename "]]"))
+      )
+    ;;(org-display-inline-images))
+
+    (global-set-key (kbd "C-c s") 'my-org-screenshot)
+
 
     ;; <-- linux -----------------------------------
     ;; ---------------------------------------------
