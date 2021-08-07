@@ -110,7 +110,10 @@ echo "#!/bin/sh"                                          > $tmp_dir/snippingtoo
 echo -n "exec /mnt/c/Windows/System32/SnippingTool.exe " >> $tmp_dir/snippingtool.sh
 echo '$@'                                                >> $tmp_dir/snippingtool.sh
 
-sudo cp $git_dir/pyscript/clip2file.py $clip2file_dir/
+#sudo cp $git_dir/pyscript/clip2file.py $clip2file_dir/
+md_clip2file_dir=${clip2file_dir/C\:/\/mnt\/c}
+sudo cp $git_dir/pyscript/clip2file.py $md_clip2file_dir/
+
 sudo cp $tmp_dir/clip2png.sh /usr/bin/clip2png
 sudo cp $tmp_dir/snippingtool.sh /usr/bin/snippingtool
 sudo chmod +x /usr/bin/clip2png
