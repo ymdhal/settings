@@ -102,9 +102,10 @@ echo "### CAPTURE ###"
 git clone https://github.com/ymdhal/pyscript.git -b clip2file_release1.0.1 $git_dir/pyscript
 #git clone https://github.com/ymdhal/pyscript.git -b clip2file_release1.0.0 $clip2file_dir/pyscript
 
-echo "#!/bin/sh"                                > $tmp_dir/clip2png.sh
-echo -n "$python_path "                        >> $tmp_dir/clip2png.sh
-echo    "$clip2file_dir/clip2file.py" >> $tmp_dir/clip2png.sh
+echo "#!/bin/sh"                           > $tmp_dir/clip2png.sh
+echo -n "$python_path "                   >> $tmp_dir/clip2png.sh
+echo -n "$clip2file_dir/clip2file.py -f " >> $tmp_dir/clip2png.sh
+echo '$@'                                 >> $tmp_dir/clip2png.sh
 
 echo "#!/bin/sh"                                          > $tmp_dir/snippingtool.sh
 echo -n "exec /mnt/c/Windows/System32/SnippingTool.exe " >> $tmp_dir/snippingtool.sh
