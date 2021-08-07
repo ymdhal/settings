@@ -82,7 +82,14 @@ This function should only modify configuration layer settings."
    ;; `dotspacemacs/user-config'. To use a local version of a package, use the
    ;; `:location' property: '(your-package :location "~/path/to/your-package/")
    ;; Also include the dependencies as they will not be resolved automatically.
-   dotspacemacs-additional-packages '()
+   dotspacemacs-additional-packages
+   '(
+     migemo
+     avy-migemo
+     mozc
+     mozc-im
+     mozc-popup
+     )
 
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -662,6 +669,7 @@ BEGIN and END are regexps which define the line range to use."
     ;; ---------------------------------------------
     ;; -- mac ------------------------------------->
 
+    (setq ROOT "/Users/hal/Dropbox/Org/")
     (setq plantuml-default-exec-mode 'jar)
     (setq org-plantuml-jar-path (concat ROOT "download/plantuml.jar"))
     (setq plantuml-jar-path (concat ROOT "download/plantuml.jar"))
@@ -669,10 +677,9 @@ BEGIN and END are regexps which define the line range to use."
     ;;(require 'ucs-normalize)
     ;;(set-file-name-coding-system 'utf-8-hfs)
     ;;(setq locale-coding-system 'utf-8-hfs)
-    (set-face-font 'default "Ricty Diminished-14")
+    (set-face-font 'default "Ricty Diminished-12")
 
     ;; root_path
-    (setq ROOT "/Users/hal/Dropbox/Org/")
 
     ;; screenshot
     (defun my-org-screenshot ()
@@ -751,14 +758,19 @@ BEGIN and END are regexps which define the line range to use."
    ((eq system-type 'gnu/linux)
     ;; ---------------------------------------------
     ;; -- linux ----------------------------------->
+    ;;mozc
+    (when (require 'mozc nil t)
+      (setq default-input-method "japanese-mozc")
+      (global-set-key [zenkaku-hankaku] 'toggle-input-method) ;; 全角半角で切り替えられる
+      (defvar mozc-candidate-style) ;; avoid compile error
+      (if (require 'mozc-popup nil t)
+          (setq mozc-candidate-style 'popup)
+        (setq mozc-candidate-style 'echo-area)))
 
-
-    (set-face-font 'default "Ricty Diminished-15")
-    (set-fontset-font
-     nil 'japanese-jisx0208
-     (font-spec :family "Ricty Diminished"))
-
-
+    (set-face-font 'default "Ricty Diminished-12")
+    ;;(set-fontset-font
+    ;; nil 'japanese-jisx0208
+    ;; (font-spec :family "Ricty Diminished"))
 
     ;; <-- linux -----------------------------------
     ;; ---------------------------------------------
